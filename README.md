@@ -1,25 +1,90 @@
-# NCL sample project folder
+# csv Collate
 
-This git repository contains a shell that should be used as the default structure for new projects
-in the analytical team.  It won't fit all circumstances perfectly, and you can make changes and issue a 
-pull request for new features / changes.
+This is a python module designed to collate loose csv files of data while accounting for inconsistencies with the structure between files.
 
-The aim of this template is two-fold: firstly to give a common structure for analytical projects to aid
-reproducibility, secondly to allow for additional security settings as default to prevent accidental upload of files that should not be committed to Git and GitHub.
+## History 
 
-__Please update/replace this README file with one relevant to your project__
+### [1.0] - 01/08/2023
+* Initial functionality
+* Instructions for installing as a module
 
-## To use this template, please use the following practises:
+## Installation
 
-* Put any data files in the `data` folder.  This folder is explicitly named in the .gitignore file.  A further layer of security is that all xls, xlsx, csv and pdf files are also explicit ignored in the whole folder as well.  ___If you need to commit one of these files, you must use the `-f` (force) command in `commit`, but you must be sure there is no identifiable data.__
-* Save any documentation in the `docs` file.  This does not mean you should avoid commenting your code, but if you have an operating procedure or supporting documents, add them to this folder.
-* Please save all output: data, formatted tables, graphs etc. in the output folder.  This is also implicitly ignored by git, but you can use the `-f` (force) command in `commit` to add any you wish to publish to github.
+* Clone the repo to your local python site-packages directory. It is recommended to create a dedicated ncl folder to organise user created modules and seperate them from other modules installed through pip. The __init__.py and sqlsnippets.py files should be in the root of the sqlsnippets directory on your machine.
+
+```
+C:\Users\{USERNAME}\AppData\Local\Programs\Python\Python311\Lib\site-packages\ncl\collate
+```
+
+* Install required modules. Can be done with the requirements file:
+```
+pip install -r requirements.txt
+```
+
+## Standard Use
+
+* Create a directory containing the following:
+  * A subdirectory containing the data csv files (and only these files)
+  * An instance python script (see the sample_instance.py file and **Instance Script** section)
+  * A .env file containing the runtime settings (see the sample.env file and **.env Settings** section). The actual .env file should not have a name and be called **.env**.
+* Set the env settings accordingly
+* Execute the instance script in the directory
+* On resolution, the program will output two files:
+  * collate.csv: Contains the collated data in one file
+  * history.csv: Contains a history of which loose files have been processed already. (WARNING: If this is deleted then the program will assume none of the existing loose csv files have been process and will process all files)
+* If enabled in the .env file then the output will also be uploaded to the database table named in the .env file
+
+Your instance directory should resemble the following structure:
+```
+├── source
+│   └── *.csv (directory containg loose csv files)
+├── .env
+├── instance.py
+├── collate.csv (created after first execution)
+└── history.csv (created after first execution)
+```
+
+## Instance Script
+This file is the script that will set up the main configurations for the specific dataset and will call the main collate functions for this instance of configurations.
+
+The file is split into the following sections:
+### Imports:
+DO NOT MODIFY<br>
+Imports the collate module along with modules to handle the env variables.
+
+### .env Variables: 
+DO NOT MODIFY<br>
+Imports the env variable values from the .env file
+
+### Mapping outputs and definitions: 
+This contains the configurations for the specific dataset being run. The following variables need to be set:
+* output_columns: An array of all columns that should appear in the output
+* output_dtypes: When the setting to upload to sql is enabled, by default the MSSQL server will assume all columns contain ints, floats, or varchars. This can be used to specify data types on upload. It is typically used for specifying a column should be stored as a date (types.Date) or datetime (types.DateTime). The full list of dtypes is available in the sqlalchemy documentation [here](https://docs.sqlalchemy.org/en/20/core/type_basics.html).
+* mapping_groups: A mapping dictionary that maps the loose data files in the source directory to entries in the mapping_columns dictionary. If a file is not listed in the mapping_groups then it will be mapped to the DEFAULT_MAP in the .env file. 
+* mapping_columns: Contains a list of dictionaries that map the columns in the loose csv files to the output columns. There should be 1 dictionary per unique structure/set of columns in the loose files. For example if I have two files, one containing 2021 data and one containing 2022 data where the 2022 file contains additional columns for ICB Name and ICB Code then it requires a seperate mapping_columns dictionary that specifies how to handle these extra columns.
+* output: DO NOT MODIFY. Object to be sent to the collate function.
+* mapping: DO NOT MODIFY. Object to be sent to the collate function.
+
+## .env Settings
+
+- METHOD: Speficies which method is used to determine which files to upload.
+  - When set to "all", all csv files in the directory specified by PATH_PREFIX in the .env file will be processed. The output collate csv file will be enitrely replaced with this method.
+  - When set to "history", the program will only process files not listed in the output history.csv file. The output is appended to the existing collate.csv output file if it exists.
+- SQL_UPLOAD: Determines if the collated data will be uploaded to the target table specified by the other env variables. 
+  - When set to "always", the data will upload regardless if there was any new data (for datasets where the entire dataset is refreshed per update). 
+  - When set to "on change", the program will only upload data if either METHOD is set to "all" or METHOD is set to "memory" and a new file was detected during execution.
+  - When set to "never", the programe will not upload data to the sql database.
+- SQL_REPLACE: When set to True then on upload, the existing data in the target table will be overwritten. When set to False, the data will be appended to the existing table.
+- SQL_DATABASE: SQL database to upload data to.
+- SQL_SCHEMA: SQL schema to upload data to (typically dbo or a user BLUE id).
+- SQL_TABLE: SQL table to upload data to.
+- PATH_PREFIX: Directory path containing the loose files (i.e. "./source/)
+- DEFAULT_MAP: The default mapping in the mapping_columns dictionaries to use when a file is not listed in the mapping_groups variable.
+- LABEL_DATA: When set to a non-empty value then the corresponding column in the output_columns will be replaced with the file name of the loose file the row of data came from. e.g. when set to "filename" then the "filename" column in the output will contain the name of the loose data files. Useful for cases like having 1 file per organisation but not having an org_code or org_name column in the data itself.
+- SQL_CHUNKSIZE: Specifies how many chunks per iteration when uploading to sql. For wider (> 20 columns of data) this may need to be lowered to prevent the program from crashing. The value can be increased for data with few columns to reduce upload speeds.
+- SQL_DTYPES: If set to True, then on upload to MSSQL, the columns named in the output_dtypes variable in the instance script will be converted to the datatype specified. 
+- SQL_ADDRESS: The server address to the MSSQL server. It is the **Server name:** parameter value when opening MS SQL Server Management Studio and getting the Connect to Server pop-up.
 
 
-### Please also consider the following:
-* Linting your code.  This is a formatting process that follows a rule set.  We broadly encourage the tidyverse standard, and recommend the `lintr` package.
-* Comment your code to make sure others can follow.
-* Consider your naming conventions: we recommend `snake case` where spaces are replaced by underscores and no capitals are use. E.g. `outpatient_referral_data`
-
-
-This repository is dual licensed under the [Open Government v3]([https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) & MIT. All code can outputs are subject to Crown Copyright.
+## License
+This repository is dual licensed under the [Open Government v3](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) & MIT. All code can outputs are subject to Crown Copyright.
