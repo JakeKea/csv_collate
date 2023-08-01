@@ -9,6 +9,7 @@
 # Exclude the following directories 
 /data/
 /output/
+/__pycache__/
 
 # Exclude data file types
 *.doc
