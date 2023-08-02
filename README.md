@@ -8,6 +8,9 @@ This is a python module designed to collate loose csv files of data while accoun
 * Initial functionality
 * Instructions for installing as a module
 
+### [1.1] - 02/08/2023
+* Added data_filter function to filter columns on values. Main use case is limited which organisations are processed
+
 ## Installation
 
 * Clone the repo to your local python site-packages directory. It is recommended to create a dedicated ncl folder to organise user created modules and seperate them from other modules installed through pip. The __init__.py and sqlsnippets.py files should be in the root of the sqlsnippets directory on your machine.
@@ -60,6 +63,13 @@ Imports the env variable values from the .env file
 This contains the configurations for the specific dataset being run. The following variables need to be set:
 * output_columns: An array of all columns that should appear in the output
 * output_dtypes: When the setting to upload to sql is enabled, by default the MSSQL server will assume all columns contain ints, floats, or varchars. This can be used to specify data types on upload. It is typically used for specifying a column should be stored as a date (types.Date) or datetime (types.DateTime). The full list of dtypes is available in the sqlalchemy documentation [here](https://docs.sqlalchemy.org/en/20/core/type_basics.html).
+* output_filters: A dictionary used for basic filtering. The main use case is limiting which organisations are processed for data sets containing all organisations. Can disable filtering functionality by not declaring the output_filters variable.
+```python
+#Example declaration to only include ncl orgs, the ICB org, and community providers
+output_filters = {
+    "org_code" : ["RAL", "RAN", "RAP", "RKE", "RNK", "RP4", "RP6", "RRP", "RRV", "TAF", "QMJ", "RV3", "RYX"]
+}
+```
 * mapping_groups: A mapping dictionary that maps the loose data files in the source directory to entries in the mapping_columns dictionary. If a file is not listed in the mapping_groups then it will be mapped to the DEFAULT_MAP in the .env file. 
 * mapping_columns: Contains a list of dictionaries that map the columns in the loose csv files to the output columns. There should be 1 dictionary per unique structure/set of columns in the loose files. For example if I have two files, one containing 2021 data and one containing 2022 data where the 2022 file contains additional columns for ICB Name and ICB Code then it requires a seperate mapping_columns dictionary that specifies how to handle these extra columns.
 * output: DO NOT MODIFY. Object to be sent to the collate function.
