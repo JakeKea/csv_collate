@@ -239,8 +239,6 @@ def filter_data(df, output):
             #Filter the data
             df_f = df_f[df_f[key].isin(filters[key])]
 
-    print("updated")
-
     #Return the filtered data
     return df_f
 
