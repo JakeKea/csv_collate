@@ -222,6 +222,29 @@ def add_data_label(data, filename, col_input, output, settings):
 
     return data
 
+#Filter data
+def filter_data(df, output):
+
+    df_f = df
+    
+    #Check if filters were specified
+    if output.get("filters"):
+
+        #Get the filter dictionary
+        filters = output["filters"]
+
+        #For each column with a filter
+        for key in filters:
+
+            #Filter the data
+            df_f = df_f[df_f[key].isin(filters[key])]
+
+    print("updated")
+
+    #Return the filtered data
+    return df_f
+
+
 #Process file
 def process_file(file, output, mapping, settings):
 
@@ -235,6 +258,9 @@ def process_file(file, output, mapping, settings):
 
     #Map the columns
     mapped_data = map_data(data, column_map)
+
+    #Filter the data
+    mapped_data = filter_data(mapped_data, output)
 
     #Declare a blank df with output columns
     df_schema = pd.DataFrame(columns=output["columns"])
