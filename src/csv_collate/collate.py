@@ -6,7 +6,7 @@ from datetime import datetime
 from sqlalchemy import create_engine, text, types
 
 #Custom Modules
-import ncl.sqlsnippets as snips
+import ncl_sqlsnippets as snips
 
 #Init process
 def initialise (output):
