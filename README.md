@@ -11,17 +11,14 @@ This is a python module designed to collate loose csv files of data while accoun
 ### [1.1] - 02/08/2023
 * Added data_filter function to filter columns on values. Main use case is limited which organisations are processed
 
+### [1.2] - 06/12/2023
+* Converted module to a pip package
+
 ## Installation
 
-* Clone the repo to your local python site-packages directory. It is recommended to create a dedicated ncl folder to organise user created modules and seperate them from other modules installed through pip. The __init__.py and sqlsnippets.py files should be in the root of the sqlsnippets directory on your machine.
-
+* Install the module through pip:
 ```
-C:\Users\{USERNAME}\AppData\Local\Programs\Python\Python311\Lib\site-packages\ncl\collate
-```
-
-* Install required modules. Can be done with the requirements file:
-```
-pip install -r requirements.txt
+pip install ncl_csv_collate
 ```
 
 ## Standard Use
