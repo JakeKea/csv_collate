@@ -14,6 +14,9 @@ This is a python module designed to collate loose csv files of data while accoun
 ### [1.2] - 06/12/2023
 * Converted module to a pip package
 
+### [1.3] - 03/01/2023
+* Allows date formats to be specified for dtypes in the instance files (see output_dateformat in template_instance)
+
 ## Installation
 
 * Install the module through pip:
