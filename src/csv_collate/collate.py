@@ -107,21 +107,41 @@ def get_upload_bool(settings, change):
         return False
 
 #Convert columns into date format (for SQL to recognise the date conversion)
-def col_conversion(data, output):
+def col_conversion(data, output, format_date="%Y-%m-%d", format_datetime="%Y-%m-%dT%H:%M:%S"):
 
     #Data types defined in output
     dtypes = output["dtypes"]
+
+    #If dateformats were specified
+    if "dateformats" in output:
+        dateformats = output["dateformats"]
 
     #For each type named in dtypes
     for dtype in dtypes:
 
         #Date type
         if (type(dtypes[dtype]) == type(types.Date)):
-            data[dtype] = pd.to_datetime(data[dtype], dayfirst=True).dt.strftime('%Y%m%d')
+
+            #Check if custom  dateformat was specified (otherwise use default)
+            if "dateformats" in output:
+                if dtype in output["dateformats"]:
+                    data[dtype] = pd.to_datetime(data[dtype], format=dateformats[dtype])
+                else:
+                    data[dtype] = pd.to_datetime(data[dtype], format=format_date)
+            else:
+                data[dtype] = pd.to_datetime(data[dtype], format=format_date)
         
         #DateTime type
         elif (type(dtypes[dtype]) == type(types.DateTime)):
-            data[dtype] = pd.to_datetime(data[dtype], dayfirst=True).dt.strftime("%Y-%m-%dT%H:%M:%S")
+
+            #Check if custom  dateformat was specified (otherwise use default)
+            if "dateformats" in output:
+                if dtype in output["dateformats"]:
+                    data[dtype] = pd.to_datetime(data[dtype], format=dateformats[dtype])
+                else:
+                    data[dtype] = pd.to_datetime(data[dtype], format=format_datetime)
+            else:
+                data[dtype] = pd.to_datetime(data[dtype], format=format_datetime)
 
     return data
 
@@ -134,7 +154,6 @@ def replace_safety_check(engine, output, settings):
     if exception_columns:
         raise Exception (f"""Uploaded halted as these columns are not found in the target table: {exception_columns}. 
            Please drop the table [{settings["SQL_SCHEMA"]}].[{settings["SQL_TABLE"]}] before attempting to replace the data with data of a different column structure""")
-
 
 #Main function for updating the collate table
 def upload_collate (append_data, output, settings):
@@ -166,7 +185,7 @@ def upload_collate (append_data, output, settings):
     #Convert columns to types specified in the mapping variable "output["dtypes"]"
     #This is mostly to make sure dates are in a recognisible format to the MSSQL server
     data = col_conversion(data, output)
-    
+
     #Upload data
     snips.upload_to_sql(data, engine, settings["SQL_TABLE"], settings["SQL_SCHEMA"], settings["SQL_REPLACE"], settings["SQL_CHUNKSIZE"], output["dtypes"])
 
@@ -241,7 +260,6 @@ def filter_data(df, output):
 
     #Return the filtered data
     return df_f
-
 
 #Process file
 def process_file(file, output, mapping, settings):
@@ -325,12 +343,6 @@ def main (output, mapping, settings):
 
     #Determine if the upload should happen
     if get_upload_bool(settings, change):
-
-        #Determine dtypes
-        if settings["SQL_DTYPES"]:
-            dtypes = output["dtypes"]
-        else:
-            dtypes = {}
 
         #Upload the current collate file
         upload_collate(new_data, output, settings)
