@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ncl-csv-collate
-Version: 1.2.1
+Version: 1.2.3
 Summary: Module to collate loose csv files with export options
 Author-email: Jake Kealey <jake.kealey@nhs.net>
 Project-URL: Homepage, https://github.com/ncl-icb-analytics/csv_collate
@@ -8,11 +8,11 @@ Project-URL: Issues, https://github.com/ncl-icb-analytics/csv_collate/issues
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
-Requires-Python: >=3.11
+Requires-Python: >=3.9
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: pandas==1.5.2
-Requires-Dist: SQLAlchemy==2.0.5.post1
+Requires-Dist: pandas>=2.1.4
+Requires-Dist: SQLAlchemy>=2.0.5.post1
 
 # csv Collate
 
