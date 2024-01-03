@@ -7,7 +7,7 @@ from os import getenv
 from sqlalchemy import types
 
 #Custom Modules
-import ncl_collate as collate
+import csv_collate as collate
 
 
 #Import env
@@ -55,7 +55,27 @@ output_columns = [
 #(Optional) Specify datatypes for SQL. 
 #Might raise exception if specified data types does not match existing table.
 #May need to DROP existing table first
+
+#Example specifying columns as Dates or Date Time objects
+'''
 output_dtypes = {
+    "date_processed" : types.Date,
+    "date_data" : types.Datetime,
+}
+'''
+output_dtypes = {
+}
+
+#(Optional) Specify the format of date type columns
+
+#Example
+'''
+output_dateformats = {
+    "date_processed":"%Y-%m-%d",
+    "date_data":"%d/%m/%YT%H:%M:%S"
+}
+'''
+output_dateformats = {
 }
 
 #Map the loose files to mapping_columns (Remove ".csv" from the file name)
@@ -64,8 +84,7 @@ mapping_groups = {
 
 #Groups of maps stating how to map the columns in the loose files to the desired output columns
 mapping_columns = {
-    "base":{
-    }
+    "base":[]
 }
 
 ### END MODIFICATIONS ###
@@ -73,7 +92,8 @@ mapping_columns = {
 #Parameter objects
 output = {
     "columns": output_columns,
-    "dtypes": output_dtypes
+    "dtypes": output_dtypes,
+    "dateformats": output_dateformats
 }
 
 mapping = {
